@@ -30,6 +30,9 @@ spec:
         command:
           - cloudflared
           - tunnel
+          {{- if .Values.cloudflare.originCertSecret.key }}
+          {{ printf "- --origincert /etc/cloudflared/certs/%s" .Values.cloudflare.originCertSecret.key }}
+          {{- end }}
           # We can regulate the cloudflared version via an image tag.
           - --no-autoupdate
           # In a k8s environment, the metrics server needs to listen outside the pod it runs on.
@@ -44,6 +47,12 @@ spec:
             secretKeyRef:
               {{- toYaml . | nindent 14 }}
             {{- end }}
+        {{- if .Values.cloudflare.originCertSecret.name }}
+        volumeMounts:
+          - name: origincert
+            mountPath: /etc/cloudflared/certs
+            readOnly: true
+        {{- end }}
         livenessProbe:
           httpGet:
             # Cloudflared has a /ready endpoint which returns 200 if and only if
@@ -53,6 +62,12 @@ spec:
           failureThreshold: 1
           initialDelaySeconds: 10
           periodSeconds: 10
+      {{- if .Values.cloudflare.originCertSecret }}
+      volumes:
+        - name: origincert
+          secret:
+            secretName: {{ .Values.cloudflare.originCertSecret.name }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

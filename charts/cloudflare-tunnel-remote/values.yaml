@@ -5,6 +5,9 @@ cloudflare:
   tunnelSecret:
     name: cloudflare
     key: TUNNEL_TOKEN
+  originCertSecret:
+    name: ''
+    key: ''
 
 image:
   repository: cloudflare/cloudflared
